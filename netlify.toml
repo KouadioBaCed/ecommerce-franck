@@ -1,0 +1,23 @@
+# Netlify deployment configuration
+# Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in:
+#   Site settings → Environment variables (NOT committed via this file).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback — harmless for the current hash router, and required if you
+# later switch to history-based routing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Long-cache the fingerprinted assets Vite emits under /assets/
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

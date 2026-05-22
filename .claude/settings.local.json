@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D /tmp/pgtest -o \"-p 54399\" -l /tmp/pglog.txt start)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -p 54399 -U postgres -d postgres -c \"SELECT version\\(\\);\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -p 54399 -U postgres -d postgres -v ON_ERROR_STOP=1 -f \"C:/Users/lenovo/AppData/Local/Temp/supabase_stubs.sql\")",
+      "Bash(/c/Program Files/PostgreSQL/17/bin/psql.exe *)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D /tmp/pgtest stop)",
+      "Bash(rm -rf /tmp/pgtest /tmp/initdb.log /tmp/pglog.txt \"C:/Users/lenovo/AppData/Local/Temp/supabase_stubs.sql\" \"C:/Users/lenovo/AppData/Local/Temp/smoke_test.sql\")",
+      "Bash('/c/Program Files/PostgreSQL/17/bin/psql.exe' -p 54401 -U postgres -d postgres -t -c 'select count\\(*\\) from information_schema.tables where table_schema='\\\\''public'\\\\'';')",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
