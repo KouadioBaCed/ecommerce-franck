@@ -23,7 +23,9 @@
       "Bash(ls netlify.toml)",
       "Bash(cat netlify.toml)",
       "Bash(npx eslint *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(python -c \"import struct;d=open\\('public/logo/download.png','rb'\\).read\\(\\); i=d.find\\(b'IHDR'\\); print\\('width',struct.unpack\\('>I',d[i+4:i+8]\\)[0],'height',struct.unpack\\('>I',d[i+8:i+12]\\)[0]\\)\")",
+      "Bash(node -e \"const b=require\\('fs'\\).readFileSync\\('public/logo/download.png'\\);const i=b.indexOf\\('IHDR'\\);console.log\\('width',b.readUInt32BE\\(i+4\\),'height',b.readUInt32BE\\(i+8\\)\\)\")"
     ]
   }
 }

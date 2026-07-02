@@ -119,7 +119,7 @@ export function AdminOverview({ navigate }: AdminOverviewProps) {
         <Kpi loading={loading} icon={Package}      tint="from-brand-100 to-brand-50 text-brand-600"     label="Produits publiés"  value={products.length} trend="+12%" />
         <Kpi loading={loading} icon={ShoppingBag}  tint="from-emerald-100 to-emerald-50 text-emerald-600" label="En stock"          value={inStock} trend={`${outStock} en rupture`} flat />
         <Kpi loading={loading} icon={Wallet}       tint="from-amber-100 to-amber-50 text-amber-600"     label="Valeur catalogue"  value={`${totalValue.toLocaleString('fr-FR')} FCFA`} trend={`Moy. ${avgPrice.toLocaleString('fr-FR')} FCFA`} flat />
-        <Kpi loading={loading} icon={TrendingUp}   tint="from-pink-100 to-pink-50 text-pink-600"        label="Vues (7j)"         value="1.2k" trend="+34%" />
+        <Kpi loading={loading} icon={TrendingUp}   tint="from-teal-100 to-teal-50 text-teal-600"        label="Vues (7j)"         value="1.2k" trend="+34%" />
       </div>
 
       {/* Chart + Quick actions */}
@@ -186,7 +186,7 @@ export function AdminOverview({ navigate }: AdminOverviewProps) {
             />
           ) : (
             <QuickAction
-              tint="bg-pink-50 text-pink-600"
+              tint="bg-teal-50 text-teal-600"
               icon={Store}
               title="Configurer"
               desc="Choisir mon slug"
@@ -291,7 +291,7 @@ export function AdminOverview({ navigate }: AdminOverviewProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-ink">Votre boutique est en ligne</p>
-            <p className="text-xs text-ink-muted truncate">marketo.app/store/{profile.store_slug}</p>
+            <p className="text-xs text-ink-muted truncate">marketoos.app/store/{profile.store_slug}</p>
           </div>
           <button
             onClick={() => openStore(profile.store_slug!)}

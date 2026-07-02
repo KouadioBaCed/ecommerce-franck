@@ -7,13 +7,13 @@ import {
   LogIn,
   Store,
   Heart,
-  ShoppingBag,
   Sparkles,
   ChevronDown,
   User,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openStore } from '../lib/openStore';
+import { Logo } from './Logo';
 
 interface NavbarProps {
   navigate: (path: string) => void;
@@ -72,16 +72,10 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
           {/* Logo */}
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2.5 shrink-0 group"
-            aria-label="Accueil"
+            className="flex items-center shrink-0 group transition-transform duration-300 hover:scale-[1.02]"
+            aria-label="Accueil Marketoos"
           >
-            <span className="relative w-9 h-9 rounded-xl bg-brand-gradient grid place-items-center shadow-glowSm transition-transform duration-300 group-hover:scale-105">
-              <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.4} />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent-amber rounded-full ring-2 ring-white" />
-            </span>
-            <span className="font-display font-extrabold text-lg text-ink tracking-tight">
-              Marketo<span className="text-brand-600">.</span>
-            </span>
+            <Logo />
           </button>
 
           {/* Spacer */}

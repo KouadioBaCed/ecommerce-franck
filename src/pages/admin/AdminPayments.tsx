@@ -172,7 +172,7 @@ export function AdminPayments() {
         <StatCard icon={Wallet} tint="from-brand-100 to-brand-50 text-brand-600" label="Revenu total" value={formatXOF(stats.revenueTotal)} />
         <StatCard icon={TrendingUp} tint="from-emerald-100 to-emerald-50 text-emerald-600" label="Revenu ce mois" value={formatXOF(stats.revenueMonth)} />
         <StatCard icon={Store} tint="from-amber-100 to-amber-50 text-amber-600" label="Boutiques actives" value={String(stats.activeStores)} />
-        <StatCard icon={CheckCircle2} tint="from-pink-100 to-pink-50 text-pink-600" label="Comptes" value={String(stats.accounts)} />
+        <StatCard icon={CheckCircle2} tint="from-teal-100 to-teal-50 text-teal-600" label="Comptes" value={String(stats.accounts)} />
       </div>
 
       {/* Toolbar */}

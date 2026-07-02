@@ -17,6 +17,7 @@ import {
 import { supabase } from '../lib/supabase';
 import type { Product, Profile } from '../lib/types';
 import { ProductCard } from '../components/ProductCard';
+import { Logo } from '../components/Logo';
 
 interface ProductWithSeller extends Product {
   profiles: Profile;
@@ -234,7 +235,7 @@ function Hero({
       <div className="absolute inset-0 bg-mesh" />
       <div className="absolute inset-0 bg-grid opacity-60" />
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-200/40 rounded-full blur-3xl" />
-      <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl" />
+      <div className="absolute -bottom-40 -left-32 w-96 h-96 bg-teal-200/30 rounded-full blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-12 gap-12 items-center">
@@ -317,7 +318,7 @@ function Hero({
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">En ligne</span>
                   </div>
 
-                  <div className="mt-5 flex-1 rounded-2xl bg-gradient-to-br from-rose-100 via-amber-50 to-pink-100 relative overflow-hidden">
+                  <div className="mt-5 flex-1 rounded-2xl bg-gradient-to-br from-brand-100 via-teal-50 to-teal-100 relative overflow-hidden">
                     <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm rounded-2xl p-3 shadow-card">
                       <p className="text-xs font-semibold text-ink line-clamp-1">Sac à dos minimaliste cuir vegan</p>
                       <div className="mt-1 flex items-center justify-between">
@@ -502,16 +503,9 @@ function Footer({ navigate }: { navigate: (p: string) => void }) {
     <footer className="mt-20 border-t border-slate-100 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-brand-gradient grid place-items-center shadow-glowSm">
-              <Store className="w-4 h-4 text-white" />
-            </span>
-            <span className="font-display font-extrabold text-lg text-ink">
-              Marketo<span className="text-brand-600">.</span>
-            </span>
-          </div>
+          <Logo />
           <p className="mt-3 text-sm text-ink-muted leading-relaxed max-w-xs">
-            La marketplace nouvelle génération pour vendeurs indépendants et acheteurs exigeants.
+            Créez votre boutique en ligne en quelques clics. Marketoos - Créez, partagez, vendez..
           </p>
           <div className="mt-4 flex items-center gap-2">
             {[Instagram, Twitter, Facebook].map((Icon, i) => (
@@ -551,7 +545,7 @@ function Footer({ navigate }: { navigate: (p: string) => void }) {
 
       <div className="border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-ink-muted">
-          <p>© {new Date().getFullYear()} Marketo. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} Marketoos. Tous droits réservés.</p>
           <p className="flex items-center gap-1.5">
             Fait avec passion <span className="text-rose-500">♥</span> pour les vendeurs indépendants.
           </p>

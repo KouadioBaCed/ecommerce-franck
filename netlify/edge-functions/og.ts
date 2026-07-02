@@ -53,8 +53,8 @@ export default async function handler(req: Request, context: Context): Promise<R
   }
   if (!product) return response;
 
-  const title = `${esc(product.name) || 'Produit'} — Marketo`;
-  const desc = esc((product.description || 'Découvrez ce produit sur Marketo.').slice(0, 200));
+  const title = `${esc(product.name) || 'Produit'} — Marketoos`;
+  const desc = esc((product.description || 'Découvrez ce produit sur Marketoos.').slice(0, 200));
   const image = product.image_url ? esc(product.image_url) : '';
   const pageUrl = esc(url.href);
 

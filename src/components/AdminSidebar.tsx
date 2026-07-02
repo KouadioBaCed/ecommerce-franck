@@ -111,7 +111,7 @@ export function AdminSidebar({ navigate, currentRoute }: AdminSidebarProps) {
 
       {/* Footer card */}
       <div className="p-3 border-t border-slate-100">
-        <div className="bg-gradient-to-br from-brand-50 via-white to-pink-50 border border-brand-100 rounded-2xl p-4">
+        <div className="bg-gradient-to-br from-brand-50 via-white to-teal-50 border border-brand-100 rounded-2xl p-4">
           <div className="w-9 h-9 rounded-xl bg-brand-gradient grid place-items-center shadow-glowSm">
             <Sparkles className="w-4 h-4 text-white" />
           </div>

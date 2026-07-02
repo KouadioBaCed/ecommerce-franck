@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,12 @@
 
 @layer base {
   :root {
-    --brand-50: 238 242 255;
-    --brand-100: 224 231 255;
-    --brand-500: 99 102 241;
-    --brand-600: 79 70 229;
-    --brand-700: 67 56 202;
-    --brand-900: 49 46 129;
+    --brand-50: 234 242 252;
+    --brand-100: 219 235 244;
+    --brand-500: 2 90 201;
+    --brand-600: 1 67 176;
+    --brand-700: 0 46 147;
+    --brand-900: 0 27 84;
     --ink: 15 23 42;
     --muted: 100 116 139;
   }
@@ -27,11 +27,11 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     color: rgb(var(--ink));
-    background-color: #fafbff;
+    background-color: #f6f9fd;
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-family: 'Poppins', 'Inter', sans-serif;
     letter-spacing: -0.02em;
   }
 }
@@ -43,19 +43,19 @@
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(1, 67, 176, 0.2);
     border-radius: 999px;
   }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.35); }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(1, 67, 176, 0.35); }
 
   .text-balance { text-wrap: balance; }
 
   /* Premium gradients */
   .bg-mesh {
     background-image:
-      radial-gradient(at 18% 12%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
-      radial-gradient(at 88% 18%, rgba(236, 72, 153, 0.12) 0px, transparent 50%),
-      radial-gradient(at 64% 96%, rgba(56, 189, 248, 0.14) 0px, transparent 50%);
+      radial-gradient(at 18% 12%, rgba(1, 67, 176, 0.18) 0px, transparent 50%),
+      radial-gradient(at 88% 18%, rgba(4, 191, 186, 0.14) 0px, transparent 50%),
+      radial-gradient(at 64% 96%, rgba(2, 90, 201, 0.12) 0px, transparent 50%);
   }
 
   .bg-grid {
@@ -112,11 +112,11 @@
   }
 
   .ring-brand {
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 4px rgba(1, 67, 176, 0.12);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    background: linear-gradient(135deg, #0143b0 0%, #04bfba 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -155,12 +155,12 @@
 /* Premium focus outline */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 0 3px rgba(1, 67, 176, 0.35);
   border-radius: 6px;
 }
 
 /* Selection */
 ::selection {
-  background: rgba(99, 102, 241, 0.18);
-  color: rgb(49, 46, 129);
+  background: rgba(1, 67, 176, 0.16);
+  color: rgb(0, 46, 147);
 }

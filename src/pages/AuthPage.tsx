@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  ShoppingBag,
   Eye,
   EyeOff,
   Mail,
@@ -16,6 +15,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from '../components/Logo';
 
 interface AuthPageProps {
   navigate: (path: string) => void;
@@ -85,14 +85,9 @@ export function AuthPage({ navigate }: AuthPageProps) {
 
         <button
           onClick={() => navigate('/')}
-          className="relative inline-flex items-center gap-2.5 group w-fit"
+          className="relative inline-flex items-center w-fit transition-transform hover:scale-[1.02]"
         >
-          <span className="w-9 h-9 rounded-xl bg-brand-gradient grid place-items-center shadow-glow transition-transform group-hover:scale-105">
-            <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.4} />
-          </span>
-          <span className="font-display font-extrabold text-lg tracking-tight">
-            Marketo<span className="text-brand-400">.</span>
-          </span>
+          <Logo onDark />
         </button>
 
         <div className="relative flex-1 flex flex-col justify-center max-w-md py-12">
@@ -138,7 +133,7 @@ export function AuthPage({ navigate }: AuthPageProps) {
           </div>
         </div>
 
-        <p className="relative text-xs text-white/40">© {new Date().getFullYear()} Marketo. Tous droits réservés.</p>
+        <p className="relative text-xs text-white/40">© {new Date().getFullYear()} Marketoos. Tous droits réservés.</p>
       </aside>
 
       {/* Form panel */}
@@ -146,14 +141,9 @@ export function AuthPage({ navigate }: AuthPageProps) {
         {/* Mobile brand */}
         <button
           onClick={() => navigate('/')}
-          className="lg:hidden inline-flex items-center gap-2.5 group w-fit"
+          className="lg:hidden inline-flex items-center w-fit"
         >
-          <span className="w-9 h-9 rounded-xl bg-brand-gradient grid place-items-center shadow-glowSm">
-            <ShoppingBag className="w-4.5 h-4.5 text-white" strokeWidth={2.4} />
-          </span>
-          <span className="font-display font-extrabold text-lg text-ink">
-            Marketo<span className="text-brand-600">.</span>
-          </span>
+          <Logo />
         </button>
 
         <div className="flex-1 flex items-center justify-center">
