@@ -9,6 +9,10 @@ export const BRAND_NAME = 'Dunamis Boutique';
 
 const LAST_REF_KEY = 'dunamis:lastSubscriptionRef';
 
+// Call the Netlify functions directly (no dependency on the /api/* redirect).
+const FN_CREATE = '/.netlify/functions/create-subscription-payment';
+const FN_VERIFY = '/.netlify/functions/verify-subscription-payment';
+
 export type SubscriptionState = {
   active: boolean;
   expiresAt: Date | null;
@@ -64,7 +68,7 @@ async function parseJsonResponse(res: Response): Promise<any> {
 }
 
 export async function startSubscriptionCheckout(): Promise<void> {
-  const res = await fetch('/api/subscription/create', {
+  const res = await fetch(FN_CREATE, {
     method: 'POST',
     headers: await authHeader(),
     body: '{}',
@@ -90,7 +94,7 @@ export async function verifySubscriptionPayment(reference: string): Promise<{
   status: string;
   subscription_expires_at: string | null;
 }> {
-  const res = await fetch('/api/subscription/verify', {
+  const res = await fetch(FN_VERIFY, {
     method: 'POST',
     headers: await authHeader(),
     body: JSON.stringify({ reference }),
