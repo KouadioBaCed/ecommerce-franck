@@ -5,6 +5,9 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
  * ------------------------------------------------------------------------- */
 export type UserRole = 'customer' | 'vendor' | 'admin';
 export type VerificationStatus = 'unverified' | 'pending' | 'approved' | 'rejected';
+export type SubscriptionStatus = 'inactive' | 'active' | 'expired';
+export type SubscriptionPaymentStatus =
+  | 'pending' | 'processing' | 'completed' | 'failed' | 'expired' | 'cancelled' | 'refunded';
 export type ProductStatus = 'draft' | 'published' | 'archived';
 export type OrderStatus =
   | 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
@@ -44,12 +47,34 @@ export type Profile = {
   verification_submitted_at: string | null;
   verified_at: string | null;
   verification_documents: Json;
+  // Store subscription (paywall)
+  subscription_status: SubscriptionStatus;
+  subscription_started_at: string | null;
+  subscription_expires_at: string | null;
   // Aggregates
   rating_avg: number;
   rating_count: number;
   sales_count: number;
   last_seen_at: string | null;
   deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type SubscriptionPayment = {
+  id: string;
+  vendor_id: string;
+  reference: string | null;
+  provider: string;
+  amount: number;
+  currency: string;
+  status: SubscriptionPaymentStatus;
+  payment_method: string | null;
+  checkout_url: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  paid_at: string | null;
+  metadata: Json;
   created_at: string;
   updated_at: string;
 }
@@ -101,6 +126,10 @@ export type Product = {
   image_url: string;
   category: string;
   in_stock: boolean;
+  // Available sizes (clothing) / pointures (shoes). Empty when not applicable.
+  sizes: string[];
+  // Units in stock per size, keyed by the size label, e.g. { '40': 5, '42': 0 }.
+  size_stock: Record<string, number>;
   // Catalog extensions
   slug: string | null;
   sku: string | null;
@@ -349,6 +378,7 @@ export interface Database {
       review_responses: Table<ReviewResponse>;
       notifications: Table<Notification>;
       notification_preferences: Table<NotificationPreferences>;
+      subscription_payments: Table<SubscriptionPayment>;
     };
     Views: {
       vendor_dashboard_stats: {
@@ -450,10 +480,33 @@ export interface Database {
           orders_30d: number;
         }>;
       };
+      admin_set_subscription: {
+        Args: { p_user_id: string; p_active: boolean; p_days?: number };
+        Returns: Profile;
+      };
+      admin_subscription_overview: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          vendor_id: string;
+          email: string | null;
+          full_name: string;
+          store_name: string;
+          store_slug: string | null;
+          role: UserRole;
+          deleted_at: string | null;
+          subscription_status: SubscriptionStatus;
+          subscription_expires_at: string | null;
+          is_active: boolean;
+          total_paid: number;
+          payments_count: number;
+          last_payment_at: string | null;
+        }>;
+      };
     };
     Enums: {
       user_role: UserRole;
       verification_status: VerificationStatus;
+      subscription_status: SubscriptionStatus;
       product_status: ProductStatus;
       order_status: OrderStatus;
       payment_status: PaymentStatus;

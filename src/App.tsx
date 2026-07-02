@@ -12,6 +12,9 @@ import { AdminOverview } from './pages/admin/AdminOverview';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminSettings } from './pages/admin/AdminSettings';
+import { AdminSubscription } from './pages/admin/AdminSubscription';
+import { AdminPayments } from './pages/admin/AdminPayments';
+import { SubscriptionGate } from './components/SubscriptionGate';
 
 function currentPath(routeName: string): string {
   switch (routeName) {
@@ -23,6 +26,10 @@ function currentPath(routeName: string): string {
       return '/admin/users';
     case 'admin-settings':
       return '/admin/settings';
+    case 'admin-subscription':
+      return '/admin/subscription';
+    case 'admin-payments':
+      return '/admin/payments';
     case 'auth':
       return '/auth';
     default:
@@ -34,10 +41,12 @@ function AdminLayout({
   children,
   navigate,
   routePath,
+  gated = true,
 }: {
   children: React.ReactNode;
   navigate: (path: string) => void;
   routePath: string;
+  gated?: boolean;
 }) {
   const { user, loading } = useAuth();
 
@@ -59,7 +68,9 @@ function AdminLayout({
       <Navbar navigate={navigate} currentRoute={routePath} />
       <div className="flex pt-16 md:pt-32">
         <AdminSidebar navigate={navigate} currentRoute={routePath} />
-        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:py-10 pb-24 lg:pb-10">{children}</main>
+        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:py-10 pb-24 lg:pb-10">
+          {gated ? <SubscriptionGate navigate={navigate}>{children}</SubscriptionGate> : children}
+        </main>
       </div>
       <AdminMobileNav navigate={navigate} currentRoute={routePath} />
     </div>
@@ -119,6 +130,22 @@ function AppRoutes() {
     return (
       <AdminLayout navigate={navigate} routePath={path}>
         <AdminSettings />
+      </AdminLayout>
+    );
+  }
+
+  if (route.name === 'admin-subscription') {
+    return (
+      <AdminLayout navigate={navigate} routePath={path} gated={false}>
+        <AdminSubscription />
+      </AdminLayout>
+    );
+  }
+
+  if (route.name === 'admin-payments') {
+    return (
+      <AdminLayout navigate={navigate} routePath={path}>
+        <AdminPayments />
       </AdminLayout>
     );
   }

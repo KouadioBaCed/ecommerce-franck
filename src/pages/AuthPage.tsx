@@ -58,10 +58,15 @@ export function AuthPage({ navigate }: AuthPageProps) {
       const { error } = await signUp(email, password);
       if (error) {
         const msg = (error as { message?: string }).message || '';
-        if (msg.includes('already registered')) {
+        if (msg.includes('already registered') || msg.includes('already been registered')) {
           setError('Cet email est déjà utilisé');
+        } else if (/confirmation email|sending.*email|smtp/i.test(msg)) {
+          setError("Impossible d'envoyer l'email de confirmation (SMTP). Désactivez la confirmation email dans Supabase ou configurez un SMTP.");
+        } else if (/database error|saving new user/i.test(msg)) {
+          setError('Erreur base de données à la création du compte (trigger). Détail : ' + msg);
         } else {
-          setError('Une erreur est survenue. Réessayez.');
+          // Surface the real Supabase message so the cause is visible.
+          setError(msg || 'Une erreur est survenue. Réessayez.');
         }
       } else {
         navigate('/admin');

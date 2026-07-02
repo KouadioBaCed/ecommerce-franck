@@ -47,6 +47,8 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
+  // Per-size quantities for clothing/shoes, e.g. { '40': 2, '42': 1 }.
+  const [sizeQty, setSizeQty] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [cust, setCust] = useState({ firstName: '', lastName: '', phone: '', address: '' });
@@ -114,9 +116,36 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
 
       setLoading(false);
       setQty(1);
+      setSizeQty({});
     }
     load();
   }, [id]);
+
+  // Sizes / pointures (clothing & shoes). Buyer picks a quantity per size,
+  // capped by the per-size stock the seller configured.
+  const sizes = product?.sizes ?? [];
+  const needsSize = sizes.length > 0;
+  const sizeLabel = product?.category === 'Chaussures' ? 'Pointure' : 'Taille';
+  const sizeStock = product?.size_stock ?? {};
+  // Units available for a size. Legacy products without a stock map are uncapped.
+  const stockFor = (s: string): number => {
+    const v = sizeStock[s];
+    return typeof v === 'number' ? v : Infinity;
+  };
+  const selectedSizes = sizes.filter((s) => (sizeQty[s] ?? 0) > 0);
+  const totalQty = needsSize
+    ? selectedSizes.reduce((sum, s) => sum + (sizeQty[s] ?? 0), 0)
+    : qty;
+
+  function setSizeCount(s: string, n: number) {
+    const clamped = Math.max(0, Math.min(n, stockFor(s)));
+    setSizeQty((m) => {
+      const next = { ...m };
+      if (clamped <= 0) delete next[s];
+      else next[s] = clamped;
+      return next;
+    });
+  }
 
   // Load the seller's Meta Pixel + fire PageView (no-op if none configured)
   useMetaPixel(product?.profiles?.meta_pixel_id, product?.id);
@@ -129,7 +158,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
         content_ids: [product.id],
         content_name: product.name,
         content_type: 'product',
-        value: Number(product.price) * qty,
+        value: Number(product.price) * totalQty,
         currency: CURRENCY,
       });
     }
@@ -148,16 +177,27 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       setOrderError('Renseigne ton prénom, nom et numéro de téléphone.');
       return;
     }
+    if (needsSize && totalQty < 1) {
+      setOrderError(`Choisis au moins une ${sizeLabel.toLowerCase()} et sa quantité.`);
+      return;
+    }
 
     const unit = Number(product.price);
-    const total = unit * qty;
+    const total = unit * totalQty;
+    const qtyLines = needsSize
+      ? [
+          ...selectedSizes.map((s) => `${sizeLabel} ${s} : ${sizeQty[s]}`),
+          `Quantité totale : ${totalQty}`,
+        ]
+      : [`Quantité : ${qty}`];
     const lines = [
       `Bonjour ${product.profiles?.store_name || ''} !`,
       '',
       'Je souhaite passer commande :',
       `*${product.name}*`,
+      `Lien du produit : ${window.location.href}`,
       `Prix unitaire : ${unit.toLocaleString('fr-FR')} FCFA`,
-      `Quantité : ${qty}`,
+      ...qtyLines,
       `Total : ${total.toLocaleString('fr-FR')} FCFA`,
       '',
       'Mes informations :',
@@ -174,7 +214,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       currency: CURRENCY,
       content_ids: [product.id],
       content_name: product.name,
-      num_items: qty,
+      num_items: totalQty,
     });
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
@@ -398,35 +438,99 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
                   </span>
                 </div>
 
-                {/* Quantity */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-ink-soft">Quantité</span>
-                  <div className="flex items-center gap-1 bg-surface-tint rounded-full p-1">
-                    <button
-                      onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="min-w-[2.5rem] text-center text-sm font-bold text-ink tabular-nums">{qty}</span>
-                    <button
-                      onClick={() => setQty((q) => q + 1)}
-                      className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
+                {needsSize ? (
+                  /* Per-size quantities — pick several sizes/pointures at once */
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-ink-soft">
+                        {sizeLabel}s &amp; quantités
+                      </span>
+                      <span className="text-xs font-semibold text-ink-soft">
+                        Total : <span className="tabular-nums">{totalQty}</span>
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {sizes.map((s) => {
+                        const n = sizeQty[s] ?? 0;
+                        const avail = stockFor(s);
+                        const soldOut = avail <= 0;
+                        const atCap = n >= avail;
+                        return (
+                          <div
+                            key={s}
+                            className={`flex items-center justify-between rounded-2xl px-3 py-2 border transition-colors ${
+                              soldOut
+                                ? 'border-slate-100 bg-surface-tint/50 opacity-60'
+                                : n > 0
+                                ? 'border-ink/15 bg-surface-tint'
+                                : 'border-slate-100 bg-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-sm font-semibold text-ink min-w-[3rem]">{s}</span>
+                              {soldOut ? (
+                                <span className="text-[11px] font-semibold text-rose-500">Épuisé</span>
+                              ) : avail !== Infinity ? (
+                                <span className="text-[11px] text-ink-muted tabular-nums">{avail} dispo</span>
+                              ) : null}
+                            </div>
+                            <div className="flex items-center gap-1 bg-white rounded-full p-1 border border-slate-100">
+                              <button
+                                onClick={() => setSizeCount(s, n - 1)}
+                                disabled={n <= 0}
+                                className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="min-w-[2.5rem] text-center text-sm font-bold text-ink tabular-nums">{n}</span>
+                              <button
+                                onClick={() => setSizeCount(s, n + 1)}
+                                disabled={soldOut || atCap}
+                                className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Quantity (products without sizes) */
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ink-soft">Quantité</span>
+                    <div className="flex items-center gap-1 bg-surface-tint rounded-full p-1">
+                      <button
+                        onClick={() => setQty((q) => Math.max(1, q - 1))}
+                        className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="min-w-[2.5rem] text-center text-sm font-bold text-ink tabular-nums">{qty}</span>
+                      <button
+                        onClick={() => setQty((q) => q + 1)}
+                        className="w-8 h-8 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* CTA */}
                 {hasWhatsApp ? (
                   <button
                     onClick={openOrder}
-                    disabled={!product.in_stock}
+                    disabled={!product.in_stock || (needsSize && totalQty < 1)}
                     className="flex items-center justify-center gap-2.5 w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-[0_10px_24px_-10px_rgba(16,185,129,0.55)] hover:shadow-[0_14px_30px_-10px_rgba(16,185,129,0.65)] hover:-translate-y-0.5"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    {product.in_stock ? 'Commander sur WhatsApp' : 'Indisponible'}
+                    {!product.in_stock
+                      ? 'Indisponible'
+                      : needsSize && totalQty < 1
+                      ? `Choisis une ${sizeLabel.toLowerCase()}`
+                      : 'Commander sur WhatsApp'}
                   </button>
                 ) : (
                   <div className="bg-surface-tint text-ink-muted text-sm text-center px-6 py-3.5 rounded-2xl">
@@ -529,11 +633,15 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-ink truncate">{product.name}</p>
-              <p className="text-xs text-ink-muted">Quantité : {qty}</p>
+              <p className="text-xs text-ink-muted">
+                {needsSize
+                  ? selectedSizes.map((s) => `${s}×${sizeQty[s]}`).join('  ')
+                  : `Quantité : ${qty}`}
+              </p>
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-extrabold text-ink tabular-nums">
-                {(Number(product.price) * qty).toLocaleString('fr-FR')} <span className="text-[11px] text-ink-muted font-semibold">FCFA</span>
+                {(Number(product.price) * totalQty).toLocaleString('fr-FR')} <span className="text-[11px] text-ink-muted font-semibold">FCFA</span>
               </p>
             </div>
           </div>

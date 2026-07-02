@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Search,
   SlidersHorizontal,
   Store,
   Sparkles,
@@ -8,15 +7,6 @@ import {
   Truck,
   MessageCircle,
   ArrowRight,
-  Shirt,
-  Smartphone,
-  UtensilsCrossed,
-  Sparkle,
-  Dumbbell,
-  Home,
-  Gamepad2,
-  BookOpen,
-  Tag,
   Flame,
   ChevronRight,
   Instagram,
@@ -36,22 +26,9 @@ interface HomePageProps {
   navigate: (path: string) => void;
 }
 
-const CATEGORY_VISUALS: Record<string, { icon: React.ComponentType<{ className?: string }>; tint: string }> = {
-  Vêtements:    { icon: Shirt,            tint: 'from-rose-100   to-rose-50    text-rose-600' },
-  Électronique: { icon: Smartphone,       tint: 'from-sky-100    to-sky-50     text-sky-600' },
-  Alimentation: { icon: UtensilsCrossed,  tint: 'from-amber-100  to-amber-50   text-amber-600' },
-  Beauté:       { icon: Sparkle,          tint: 'from-pink-100   to-pink-50    text-pink-600' },
-  Sport:        { icon: Dumbbell,         tint: 'from-emerald-100 to-emerald-50 text-emerald-600' },
-  Maison:       { icon: Home,             tint: 'from-indigo-100 to-indigo-50  text-indigo-600' },
-  Jouets:       { icon: Gamepad2,         tint: 'from-purple-100 to-purple-50  text-purple-600' },
-  Livres:       { icon: BookOpen,         tint: 'from-orange-100 to-orange-50  text-orange-600' },
-  Autre:        { icon: Tag,              tint: 'from-slate-100  to-slate-50   text-slate-600' },
-};
-
 export function HomePage({ navigate }: HomePageProps) {
   const [products, setProducts] = useState<ProductWithSeller[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
 
@@ -89,40 +66,12 @@ export function HomePage({ navigate }: HomePageProps) {
   return (
     <div className="min-h-screen bg-surface-alt">
       <Hero
-        search={search}
-        setSearch={setSearch}
         categories={categories}
         onPick={setCategory}
+        navigate={navigate}
       />
 
       <TrustStrip />
-
-      {/* Categories */}
-      <Section
-        eyebrow="Catégories"
-        title="Explorez par univers"
-        subtitle="Trouvez exactement ce qu'il vous faut parmi nos rayons soigneusement sélectionnés."
-      >
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          <CategoryTile
-            label="Tout"
-            icon={Flame}
-            tint="from-brand-100 to-brand-50 text-brand-600"
-            active={!category}
-            onClick={() => setCategory('')}
-          />
-          {Object.entries(CATEGORY_VISUALS).map(([name, vis]) => (
-            <CategoryTile
-              key={name}
-              label={name}
-              icon={vis.icon}
-              tint={vis.tint}
-              active={category === name}
-              onClick={() => setCategory(category === name ? '' : name)}
-            />
-          ))}
-        </div>
-      </Section>
 
       {/* Filter bar */}
       <div className="sticky top-16 md:top-32 z-30 border-b border-slate-100 bg-white/85 glass">
@@ -141,7 +90,7 @@ export function HomePage({ navigate }: HomePageProps) {
       </div>
 
       {/* Trending */}
-      {!loading && trending.length > 0 && !search && !category && (
+      {!loading && trending.length > 0 && !category && (
         <Section
           eyebrow={<span className="inline-flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> Tendance maintenant</span>}
           title="Les coups de coeur de la semaine"
@@ -167,7 +116,7 @@ export function HomePage({ navigate }: HomePageProps) {
       )}
 
       {/* Promo banner */}
-      {!loading && !search && !category && (
+      {!loading && !category && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
           <div className="relative overflow-hidden rounded-3xl bg-brand-gradient-2 p-8 sm:p-12">
             <div className="absolute inset-0 bg-grid opacity-30" />
@@ -219,7 +168,7 @@ export function HomePage({ navigate }: HomePageProps) {
       )}
 
       {/* Featured stores */}
-      {!loading && featuredStores.length > 0 && !search && !category && (
+      {!loading && featuredStores.length > 0 && !category && (
         <Section
           eyebrow="Boutiques en vedette"
           title="Découvrez nos meilleurs vendeurs"
@@ -272,15 +221,13 @@ export function HomePage({ navigate }: HomePageProps) {
 /* --------- Sub-components --------- */
 
 function Hero({
-  search,
-  setSearch,
   categories,
   onPick,
+  navigate,
 }: {
-  search: string;
-  setSearch: (s: string) => void;
   categories: string[];
   onPick: (c: string) => void;
+  navigate: (path: string) => void;
 }) {
   return (
     <section className="relative overflow-hidden pt-10 pb-16 sm:pt-16 sm:pb-24">
@@ -306,28 +253,23 @@ function Hero({
               Des milliers de produits proposés par des vendeurs vérifiés. Commandez en 1 clic via WhatsApp, sans intermédiaire.
             </p>
 
+            {/* Primary CTA — accéder à sa boutique (connexion / inscription) */}
+            <div className="mt-6 flex justify-center lg:justify-start">
+              <button
+                onClick={() => navigate('/auth')}
+                className="inline-flex items-center gap-2 bg-ink hover:bg-brand-700 text-white font-semibold px-6 py-3.5 rounded-full shadow-elevated hover:shadow-glow hover:-translate-y-0.5 transition-all"
+              >
+                <Store className="w-4.5 h-4.5" />
+                Accéder à ma boutique
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Search */}
             <form
               onSubmit={(e) => e.preventDefault()}
               className="mt-8 max-w-2xl mx-auto lg:mx-0 relative"
             >
-              <div className="flex items-center bg-white rounded-2xl border border-slate-200 shadow-elevated p-1.5 focus-within:border-brand-300 focus-within:ring-brand transition-all">
-                <div className="pl-4 pr-3">
-                  <Search className="w-5 h-5 text-ink-subtle" />
-                </div>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher un produit, une boutique, une marque..."
-                  className="flex-1 bg-transparent outline-none text-sm placeholder-ink-subtle py-3"
-                />
-                <button
-                  type="submit"
-                  className="bg-ink hover:bg-brand-700 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-colors"
-                >
-                  Rechercher
-                </button>
-              </div>
 
               {categories.length > 0 && (
                 <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-2 text-xs">
@@ -497,40 +439,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function CategoryTile({
-  label,
-  icon: Icon,
-  tint,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tint: string;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`group flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all duration-300 ${
-        active
-          ? 'bg-ink border-ink text-white shadow-elevated -translate-y-0.5'
-          : 'bg-white border-slate-100 hover:border-brand-200 hover:-translate-y-0.5 hover:shadow-card'
-      }`}
-    >
-      <span
-        className={`w-12 h-12 rounded-2xl grid place-items-center transition-transform group-hover:scale-110 ${
-          active ? 'bg-white/15 text-white' : `bg-gradient-to-br ${tint}`
-        }`}
-      >
-        <Icon className="w-5 h-5" />
-      </span>
-      <span className={`text-xs font-semibold ${active ? 'text-white' : 'text-ink-soft'}`}>{label}</span>
-    </button>
   );
 }
 

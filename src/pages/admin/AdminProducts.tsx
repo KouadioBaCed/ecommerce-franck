@@ -21,7 +21,15 @@ import { useAuth } from '../../context/AuthContext';
 import type { Product } from '../../lib/types';
 import { Modal } from '../../components/Modal';
 
-const CATEGORIES = ['Vêtements', 'Électronique', 'Alimentation', 'Beauté', 'Sport', 'Maison', 'Jouets', 'Livres', 'Autre'];
+const CATEGORIES = ['Vêtements', 'Chaussures', 'Électronique', 'Alimentation', 'Beauté', 'Sport', 'Maison', 'Jouets', 'Livres', 'Autre'];
+
+// Categories that require a size/pointure picker, with their preset values.
+const SIZE_PRESETS: Record<string, string[]> = {
+  'Vêtements':  ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
+  'Chaussures': ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
+};
+const needsSizes = (cat: string) => cat in SIZE_PRESETS;
+const sizeNoun = (cat: string) => (cat === 'Chaussures' ? 'Pointures' : 'Tailles');
 
 const MAX_IMAGES = 6;
 
@@ -32,6 +40,8 @@ interface ProductFormData {
   images: string[];
   category: string;
   in_stock: boolean;
+  sizes: string[];
+  sizeStock: Record<string, number>;
 }
 
 const defaultForm: ProductFormData = {
@@ -41,6 +51,8 @@ const defaultForm: ProductFormData = {
   images: [],
   category: '',
   in_stock: true,
+  sizes: [],
+  sizeStock: {},
 };
 
 export function AdminProducts() {
@@ -100,6 +112,8 @@ export function AdminProducts() {
       images: p.image_url ? [p.image_url] : [],
       category: p.category,
       in_stock: p.in_stock,
+      sizes: p.sizes ?? [],
+      sizeStock: p.size_stock ?? {},
     });
     setError('');
     setShowForm(true);
@@ -134,6 +148,12 @@ export function AdminProducts() {
       image_url: (form.images[0] || '').trim(), // first image = cover (used in listings)
       category: form.category,
       in_stock: form.in_stock,
+      // Only persist sizes for categories that use them; clear otherwise.
+      sizes: needsSizes(form.category) ? form.sizes : [],
+      // Keep only stock entries for the selected sizes.
+      size_stock: needsSizes(form.category)
+        ? Object.fromEntries(form.sizes.map((s) => [s, Math.max(0, form.sizeStock[s] ?? 0)]))
+        : {},
       seller_id: user.id,
     };
 
@@ -468,6 +488,16 @@ export function AdminProducts() {
                 />
               </FormField>
 
+              {/* Sizes / pointures + per-size stock — only for clothing & shoes */}
+              {needsSizes(form.category) && (
+                <SizesEditor
+                  category={form.category}
+                  sizes={form.sizes}
+                  stock={form.sizeStock}
+                  onChange={(sizes, sizeStock) => setForm((f) => ({ ...f, sizes, sizeStock }))}
+                />
+              )}
+
               {/* Image gallery (multi) */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -625,6 +655,153 @@ function FormField({
         {required && <span className="text-rose-500">*</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+function SizesEditor({
+  category,
+  sizes,
+  stock,
+  onChange,
+}: {
+  category: string;
+  sizes: string[];
+  stock: Record<string, number>;
+  onChange: (sizes: string[], stock: Record<string, number>) => void;
+}) {
+  const [custom, setCustom] = useState('');
+  const presets = SIZE_PRESETS[category] ?? [];
+  const noun = sizeNoun(category); // "Tailles" | "Pointures"
+  const totalUnits = sizes.reduce((sum, s) => sum + (stock[s] ?? 0), 0);
+
+  function toggle(s: string) {
+    if (sizes.includes(s)) {
+      const nextStock = { ...stock };
+      delete nextStock[s];
+      onChange(sizes.filter((v) => v !== s), nextStock);
+    } else {
+      onChange([...sizes, s], { ...stock, [s]: stock[s] ?? 1 });
+    }
+  }
+
+  function addCustom() {
+    const s = custom.trim();
+    if (s && !sizes.includes(s)) onChange([...sizes, s], { ...stock, [s]: 1 });
+    setCustom('');
+  }
+
+  function setStock(s: string, n: number) {
+    onChange(sizes, { ...stock, [s]: Math.max(0, n) });
+  }
+
+  return (
+    <div className="space-y-3 bg-surface-tint rounded-2xl p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-ink-soft uppercase tracking-wider">
+          {noun} &amp; stock
+        </p>
+        <span className="text-[11px] text-ink-muted">
+          {sizes.length} {noun.toLowerCase()} · {totalUnits} unité{totalUnits > 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Pick which sizes exist */}
+      <div className="flex flex-wrap gap-2">
+        {presets.map((s) => {
+          const active = sizes.includes(s);
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggle(s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                active
+                  ? 'bg-ink text-white border-ink shadow-soft'
+                  : 'bg-white text-ink-soft border-slate-200 hover:border-brand-300 hover:text-brand-700'
+              }`}
+            >
+              {s}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Add a custom value (e.g. an unusual size / pointure) */}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={custom}
+          onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+          placeholder={category === 'Chaussures' ? 'Autre pointure (ex: 47)' : 'Autre taille (ex: 4XL)'}
+          className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm focus:border-brand-300 focus:ring-brand transition-all"
+        />
+        <button
+          type="button"
+          onClick={addCustom}
+          className="px-4 py-2.5 rounded-2xl text-sm font-semibold text-white bg-ink hover:bg-brand-700 transition-colors shrink-0"
+        >
+          Ajouter
+        </button>
+      </div>
+
+      {/* Stock per selected size */}
+      {sizes.length > 0 && (
+        <div className="space-y-1.5 pt-1">
+          <p className="text-[11px] font-semibold text-ink-soft uppercase tracking-wider">
+            Stock par {noun.toLowerCase().slice(0, -1)}
+          </p>
+          {sizes.map((s) => {
+            const n = stock[s] ?? 0;
+            return (
+              <div
+                key={s}
+                className="flex items-center justify-between bg-white rounded-2xl px-3 py-2 border border-slate-100"
+              >
+                <span className="text-sm font-semibold text-ink min-w-[3rem]">{s}</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-surface-tint rounded-full p-1">
+                    <button
+                      type="button"
+                      onClick={() => setStock(s, n - 1)}
+                      className="w-7 h-7 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
+                    >
+                      <span className="text-base leading-none">−</span>
+                    </button>
+                    <input
+                      type="number"
+                      min={0}
+                      value={n}
+                      onChange={(e) => setStock(s, Math.floor(Number(e.target.value) || 0))}
+                      className="w-12 text-center text-sm font-bold text-ink tabular-nums bg-transparent outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setStock(s, n + 1)}
+                      className="w-7 h-7 grid place-items-center rounded-full bg-white border border-slate-100 text-ink-soft hover:text-ink hover:border-brand-200 transition-all"
+                    >
+                      <span className="text-base leading-none">+</span>
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggle(s)}
+                    className="w-8 h-8 grid place-items-center text-ink-muted hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                    aria-label="Retirer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="text-[11px] text-ink-muted">
+        Le client choisit ses {noun.toLowerCase()} à la commande, sans dépasser le stock indiqué.
+      </p>
     </div>
   );
 }

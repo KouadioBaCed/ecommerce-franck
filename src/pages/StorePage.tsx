@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import type { Product, Profile } from '../lib/types';
 import { ProductCard } from '../components/ProductCard';
 import { useMetaPixel } from '../hooks/useMetaPixel';
+import { getSubscriptionState } from '../lib/subscription';
 
 interface StorePageProps {
   slug: string;
@@ -104,6 +105,28 @@ export function StorePage({ slug, navigate }: StorePageProps) {
         </div>
         <h1 className="font-display text-2xl font-bold text-ink mt-4">Boutique introuvable</h1>
         <p className="text-sm text-ink-muted mt-2">Cette boutique n'existe pas ou a été supprimée.</p>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-6 inline-flex items-center gap-2 bg-ink text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-brand-700 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour à l'accueil
+        </button>
+      </div>
+    );
+  }
+
+  // Blocage fort: an unpaid / expired store is not publicly available.
+  if (!getSubscriptionState(profile).active) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-amber-50 grid place-items-center">
+          <Store className="w-10 h-10 text-amber-400" />
+        </div>
+        <h1 className="font-display text-2xl font-bold text-ink mt-4">Boutique temporairement indisponible</h1>
+        <p className="text-sm text-ink-muted mt-2">
+          Cette boutique n'est pas active pour le moment. Revenez plus tard.
+        </p>
         <button
           onClick={() => navigate('/')}
           className="mt-6 inline-flex items-center gap-2 bg-ink text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-brand-700 transition-colors"

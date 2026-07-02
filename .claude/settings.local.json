@@ -11,7 +11,18 @@
       "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D /tmp/pgtest stop)",
       "Bash(rm -rf /tmp/pgtest /tmp/initdb.log /tmp/pglog.txt \"C:/Users/lenovo/AppData/Local/Temp/supabase_stubs.sql\" \"C:/Users/lenovo/AppData/Local/Temp/smoke_test.sql\")",
       "Bash('/c/Program Files/PostgreSQL/17/bin/psql.exe' -p 54401 -U postgres -d postgres -t -c 'select count\\(*\\) from information_schema.tables where table_schema='\\\\''public'\\\\'';')",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "Bash(curl -s -X POST https://llbcprvmhzhwwpxoebhc.supabase.co/auth/v1/signup -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsYmNwcnZtaHpod3dweG9lYmhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjEyMTMsImV4cCI6MjA5NDkzNzIxM30.SHmXpcp4z76jPQKIhzUcfngubBabeGXLIa9enxDISY4' -H 'Content-Type: application/json' -d '{\"email\":\"test___TRACKED_VAR__@gmail.com\",\"password\":\"password123\"}' -w '\\\\nHTTP_STATUS:%{http_code}\\\\n')",
+      "Bash(nslookup llbcprvmhzhwwpxoebhc.supabase.co)",
+      "Bash(curl -s -o /dev/null -w \"supabase.com -> %{http_code}\\\\n\" https://supabase.com)",
+      "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\\\\n\" https://llbcprvmhzhwwpxoebhc.supabase.co/auth/v1/health)",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__get_cost",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(ls netlify.toml)",
+      "Bash(cat netlify.toml)",
+      "Bash(npx eslint *)"
     ]
   }
 }

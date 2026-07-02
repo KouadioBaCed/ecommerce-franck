@@ -9,8 +9,36 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA fallback — harmless for the current hash router, and required if you
-# later switch to history-based routing.
+# `netlify dev` — serves the Vite app AND the /api functions on one port (8899).
+# Point your tunnel (cloudflared) at http://localhost:8899, not Vite's 5170.
+[dev]
+  command = "npm run dev"
+  targetPort = 5170
+  port = 8899
+  framework = "#custom"
+
+# Serverless functions (GeniusPay subscription flow). The GeniusPay secret key
+# and SUPABASE_SERVICE_ROLE_KEY must be set in Site settings → Environment
+# variables — see .env.example. These live server-side only.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Friendly API routes → functions. MUST come before the SPA catch-all below.
+[[redirects]]
+  from = "/api/subscription/create"
+  to = "/.netlify/functions/create-subscription-payment"
+  status = 200
+[[redirects]]
+  from = "/api/subscription/verify"
+  to = "/.netlify/functions/verify-subscription-payment"
+  status = 200
+[[redirects]]
+  from = "/api/subscription/webhook"
+  to = "/.netlify/functions/geniuspay-webhook"
+  status = 200
+
+# SPA fallback — required for history-based routing.
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Settings, Store, Users } from 'lucide-react';
+import { LayoutDashboard, Package, Settings, Store, CreditCard, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openStore } from '../lib/openStore';
 
@@ -14,8 +14,8 @@ export function AdminMobileNav({ navigate, currentRoute }: AdminMobileNavProps) 
     { path: '/admin',          label: 'Accueil',  icon: LayoutDashboard },
     { path: '/admin/products', label: 'Produits', icon: Package },
     ...(profile?.role === 'admin'
-      ? [{ path: '/admin/users', label: 'Users', icon: Users }]
-      : []),
+      ? [{ path: '/admin/payments', label: 'Paiements', icon: Wallet }]
+      : [{ path: '/admin/subscription', label: 'Abo.', icon: CreditCard }]),
     { path: '/admin/settings', label: 'Boutique', icon: Settings },
   ];
 

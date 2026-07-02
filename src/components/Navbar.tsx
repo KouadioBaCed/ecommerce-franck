@@ -6,7 +6,6 @@ import {
   LogOut,
   LogIn,
   Store,
-  Search,
   Heart,
   ShoppingBag,
   Sparkles,
@@ -32,7 +31,6 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
   const { user, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [search, setSearch] = useState('');
   const [accountOpen, setAccountOpen] = useState(false);
 
   useEffect(() => {
@@ -86,23 +84,8 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
             </span>
           </button>
 
-          {/* Center search — desktop */}
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="hidden md:flex flex-1 max-w-xl mx-6 relative"
-          >
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un produit, une boutique, une catégorie..."
-              className="w-full pl-11 pr-24 py-2.5 text-sm bg-surface-tint border border-transparent rounded-full text-ink placeholder-ink-subtle hover:bg-white hover:border-slate-200 focus:bg-white focus:border-brand-300 focus:ring-brand transition-all duration-200"
-            />
-            <kbd className="hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-ink-muted bg-white border border-slate-200 rounded-md">
-              ⌘ K
-            </kbd>
-          </form>
+          {/* Spacer */}
+          <div className="hidden md:block flex-1" />
 
           {/* Right actions — desktop */}
           <div className="hidden md:flex items-center gap-1">
@@ -193,9 +176,6 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
 
           {/* Mobile right actions */}
           <div className="md:hidden flex items-center gap-1">
-            <IconButton label="Recherche" onClick={() => setMenuOpen(true)}>
-              <Search className="w-5 h-5" />
-            </IconButton>
             <button
               className="p-2.5 rounded-full text-ink-soft hover:bg-surface-tint transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -228,19 +208,6 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
       {menuOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white animate-slide-up">
           <div className="px-4 py-4 space-y-3">
-            {/* Mobile search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher..."
-                autoFocus
-                className="w-full pl-11 pr-4 py-3 text-sm bg-surface-tint border border-transparent rounded-2xl focus:bg-white focus:border-brand-300 focus:ring-brand transition-all"
-              />
-            </div>
-
             <div className="flex flex-wrap gap-2">
               {quickLinks.map((l) => (
                 <button

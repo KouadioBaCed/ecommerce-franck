@@ -7,6 +7,8 @@ import {
   BadgeCheck,
   Sparkles,
   Users,
+  CreditCard,
+  Wallet,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openStore } from '../lib/openStore';
@@ -26,8 +28,15 @@ export function AdminSidebar({ navigate, currentRoute }: AdminSidebarProps) {
     { title: 'Pilotage',  items: [{ path: '/admin',          label: "Vue d'ensemble", icon: LayoutDashboard }] },
     { title: 'Catalogue', items: [{ path: '/admin/products', label: 'Mes produits',   icon: Package }] },
     { title: 'Boutique',  items: [{ path: '/admin/settings', label: 'Ma boutique',    icon: Settings }] },
+    { title: 'Facturation', items: [{ path: '/admin/subscription', label: 'Abonnement', icon: CreditCard }] },
     ...(profile?.role === 'admin'
-      ? [{ title: 'Administration', items: [{ path: '/admin/users', label: 'Utilisateurs', icon: Users }] }]
+      ? [{
+          title: 'Administration',
+          items: [
+            { path: '/admin/users', label: 'Utilisateurs', icon: Users },
+            { path: '/admin/payments', label: 'Paiements', icon: Wallet },
+          ],
+        }]
       : []),
   ];
 

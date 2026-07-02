@@ -53,7 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Arriving from an email confirmation / recovery link (token is in the
         // URL hash): strip it and land cleanly on the dashboard.
         if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
-          window.location.hash = '/admin';
+          window.history.replaceState({}, '', '/admin');
+          window.dispatchEvent(new PopStateEvent('popstate'));
         }
       } else {
         setProfile(null);
