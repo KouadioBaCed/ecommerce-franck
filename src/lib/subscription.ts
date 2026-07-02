@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import type { Profile } from './types';
 
 /** Business constants — keep in sync with netlify/functions/lib/subscription.mts */
-export const SUBSCRIPTION_AMOUNT = 200;
+export const SUBSCRIPTION_AMOUNT = 500;
 export const SUBSCRIPTION_CURRENCY = 'XOF';
 export const SUBSCRIPTION_PERIOD_DAYS = 30;
 export const BRAND_NAME = 'Dunamis Boutique';

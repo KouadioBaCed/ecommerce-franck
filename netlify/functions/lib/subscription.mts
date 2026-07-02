@@ -5,7 +5,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /** Monthly price of a store subscription, in XOF. */
-export const SUBSCRIPTION_AMOUNT = 200;
+export const SUBSCRIPTION_AMOUNT = 500;
 export const SUBSCRIPTION_CURRENCY = 'XOF';
 export const SUBSCRIPTION_PERIOD_DAYS = 30;
 export const BRAND_NAME = 'Dunamis Boutique';

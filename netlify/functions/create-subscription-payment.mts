@@ -1,7 +1,7 @@
 // POST /api/subscription/create  (→ /.netlify/functions/create-subscription-payment)
 //
 // Creates a GeniusPay *hosted checkout* for the caller's monthly store
-// subscription (200 FCFA) and records a pending row in subscription_payments.
+// subscription (500 FCFA) and records a pending row in subscription_payments.
 // Returns { reference, checkout_url } — the frontend redirects to checkout_url.
 //
 // The GeniusPay secret key lives only in this server-side function.
