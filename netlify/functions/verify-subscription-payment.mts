@@ -38,14 +38,20 @@ export default async (req: Request, _context: Context): Promise<Response> => {
 
   const svc = serviceClient();
 
-  // Make sure this reference belongs to the caller (defense in depth).
+  // The reference must belong to the caller — or the caller must be an admin.
   const { data: row } = await svc
     .from('subscription_payments')
     .select('vendor_id')
     .eq('reference', reference)
     .maybeSingle();
-  if (!row || row.vendor_id !== user.id) {
-    return json({ error: 'Transaction not found' }, 404);
+  if (!row) return json({ error: 'Transaction not found' }, 404);
+  if (row.vendor_id !== user.id) {
+    const { data: prof } = await svc
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (prof?.role !== 'admin') return json({ error: 'Transaction not found' }, 404);
   }
 
   // Ask GeniusPay for the authoritative status.

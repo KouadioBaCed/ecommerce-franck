@@ -19,7 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { SubscriptionPayment, Database } from '../../lib/types';
 import { Modal } from '../../components/Modal';
 import { Receipt } from '../../components/Receipt';
-import { formatXOF, formatDate, formatDateTime } from '../../lib/subscription';
+import { formatXOF, formatDate, formatDateTime, verifySubscriptionPayment } from '../../lib/subscription';
 
 type Overview = Database['public']['Functions']['admin_subscription_overview']['Returns'][number];
 type PaymentWithVendor = SubscriptionPayment & {
@@ -70,6 +70,17 @@ export function AdminPayments() {
       .from('profiles')
       .update({ deleted_at: enabled ? null : new Date().toISOString() })
       .eq('id', vendorId);
+    await load();
+    setBusyId(null);
+  }
+
+  async function verifyPayment(reference: string) {
+    setBusyId(reference);
+    try {
+      await verifySubscriptionPayment(reference);
+    } catch {
+      /* surfaced by reload below */
+    }
     await load();
     setBusyId(null);
   }
@@ -305,14 +316,23 @@ export function AdminPayments() {
                     </p>
                   </div>
                   <span className="text-sm font-bold text-ink tabular-nums shrink-0">{formatXOF(p.amount)}</span>
-                  {p.status === 'completed' && (
+                  {p.status === 'completed' ? (
                     <button
                       onClick={() => setReceipt(p)}
                       className="text-[11px] font-semibold text-brand-700 hover:text-brand-800 shrink-0"
                     >
                       Reçu
                     </button>
-                  )}
+                  ) : (p.status === 'pending' || p.status === 'processing') && p.reference ? (
+                    <button
+                      onClick={() => verifyPayment(p.reference!)}
+                      disabled={busyId === p.reference}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-muted hover:text-ink shrink-0 disabled:opacity-50"
+                    >
+                      {busyId === p.reference && <Loader2 className="w-3 h-3 animate-spin" />}
+                      Vérifier
+                    </button>
+                  ) : null}
                 </div>
               ))}
               {visiblePayments.length === 0 && (

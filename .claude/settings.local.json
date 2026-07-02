@@ -22,7 +22,8 @@
       "mcp__claude_ai_Supabase__apply_migration",
       "Bash(ls netlify.toml)",
       "Bash(cat netlify.toml)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(curl *)"
     ]
   }
 }

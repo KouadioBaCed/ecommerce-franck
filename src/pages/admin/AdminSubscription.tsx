@@ -49,42 +49,68 @@ export function AdminSubscription() {
     setLoading(false);
   }, []);
 
-  // On return from GeniusPay checkout: verify the pending payment.
+  // On mount (and on return from GeniusPay checkout): reconcile any pending
+  // payment with GeniusPay. Works even if GeniusPay didn't redirect back —
+  // we re-check every pending transaction, not just the one from the URL.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const statusParam = params.get('status');
-    const ref = params.get('ref') || popLastReference();
+    const returnRef = params.get('ref') || popLastReference();
 
     async function run() {
       if (statusParam === 'error') {
         setNotice({ type: 'error', text: 'Le paiement a été annulé ou a échoué. Réessayez.' });
       }
-      if (ref && statusParam !== 'error') {
-        setVerifying(true);
-        try {
-          const res = await verifySubscriptionPayment(ref);
-          if (res.applied || res.status === 'completed') {
-            await refreshProfile();
-            setNotice({ type: 'success', text: 'Paiement confirmé ! Votre boutique est active.' });
-          } else if (res.status === 'pending' || res.status === 'processing') {
-            setNotice({
-              type: 'info',
-              text: 'Paiement en cours de traitement. Cette page se mettra à jour automatiquement.',
-            });
-          } else {
-            setNotice({ type: 'error', text: `Statut du paiement : ${res.status}.` });
-          }
-        } catch (e) {
-          setNotice({ type: 'error', text: (e as Error).message });
-        } finally {
-          setVerifying(false);
+
+      // Load current payments first.
+      const { data } = await supabase
+        .from('subscription_payments')
+        .select('*')
+        .order('created_at', { ascending: false });
+      const list = (data ?? []) as SubscriptionPayment[];
+      setPayments(list);
+      setLoading(false);
+
+      // Collect references to verify: the return ref + every pending/processing one.
+      const refs = new Set<string>();
+      if (returnRef && statusParam !== 'error') refs.add(returnRef);
+      for (const p of list) {
+        if ((p.status === 'pending' || p.status === 'processing') && p.reference) {
+          refs.add(p.reference);
         }
       }
+
+      if (refs.size > 0) {
+        setVerifying(true);
+        let activated = false;
+        let stillPending = false;
+        for (const r of refs) {
+          try {
+            const res = await verifySubscriptionPayment(r);
+            if (res.applied || res.status === 'completed') activated = true;
+            else if (res.status === 'pending' || res.status === 'processing') stillPending = true;
+          } catch {
+            /* ignore individual failures */
+          }
+        }
+        setVerifying(false);
+
+        if (activated) {
+          await refreshProfile();
+          setNotice({ type: 'success', text: 'Paiement confirmé ! Votre boutique est active.' });
+          await loadPayments();
+        } else if (returnRef && stillPending) {
+          setNotice({
+            type: 'info',
+            text: 'Paiement en cours de traitement. Réessayez « Vérifier » dans un instant.',
+          });
+        }
+      }
+
       // Clean the URL so a refresh doesn't re-trigger verification.
       if (statusParam || params.get('ref')) {
         window.history.replaceState({}, '', '/admin/subscription');
       }
-      loadPayments();
     }
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -75,7 +75,12 @@ export async function startSubscriptionCheckout(): Promise<void> {
   });
   const data = await parseJsonResponse(res);
   if (!res.ok) {
-    throw new Error(data?.error || "Impossible d'initier le paiement.");
+    const detail =
+      data?.error ||
+      data?.details?.error?.message ||
+      data?.details?.message ||
+      (data?.details ? JSON.stringify(data.details).slice(0, 300) : '');
+    throw new Error(detail || "Impossible d'initier le paiement.");
   }
   if (data.reference) {
     try {
