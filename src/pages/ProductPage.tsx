@@ -686,6 +686,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
                   required
                   value={cust.firstName}
                   onChange={(e) => setCust({ ...cust, firstName: e.target.value })}
+                  onFocus={scrollFieldIntoView}
                   placeholder="Sara"
                   className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all"
                 />
@@ -696,6 +697,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
                   required
                   value={cust.lastName}
                   onChange={(e) => setCust({ ...cust, lastName: e.target.value })}
+                  onFocus={scrollFieldIntoView}
                   placeholder="El Amrani"
                   className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all"
                 />
@@ -708,6 +710,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
                 required
                 value={cust.phone}
                 onChange={(e) => setCust({ ...cust, phone: e.target.value })}
+                onFocus={scrollFieldIntoView}
                 placeholder="0612345678"
                 className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all tabular-nums"
               />
@@ -717,6 +720,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
               <textarea
                 value={cust.address}
                 onChange={(e) => setCust({ ...cust, address: e.target.value })}
+                onFocus={scrollFieldIntoView}
                 rows={2}
                 placeholder="Ville, quartier, point de repère..."
                 className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all resize-none"
@@ -747,6 +751,16 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       </Modal>
     </div>
   );
+}
+
+// iOS Safari doesn't reliably auto-scroll a focused field inside a fixed,
+// scrollable modal once the keyboard opens — force it once the keyboard
+// animation/visualViewport resize (see Modal.tsx) has settled.
+function scrollFieldIntoView(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  const el = e.currentTarget;
+  window.setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 300);
 }
 
 function OrderField({
