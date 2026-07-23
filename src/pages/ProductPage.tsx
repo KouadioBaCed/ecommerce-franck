@@ -32,6 +32,7 @@ import { useMetaPixel } from '../hooks/useMetaPixel';
 import { trackAddToCart, trackPurchase } from '../lib/metaPixel';
 import { isMetaInAppBrowser } from '../lib/inAppBrowser';
 import { openWhatsAppChat } from '../lib/whatsappOrder';
+import { scrollFieldIntoView } from '../lib/scrollFieldIntoView';
 
 // FCFA → ISO 4217 currency code for Meta (West African CFA franc).
 const CURRENCY = 'XOF';
@@ -788,16 +789,6 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       </Modal>
     </div>
   );
-}
-
-// iOS Safari doesn't reliably auto-scroll a focused field inside a fixed,
-// scrollable modal once the keyboard opens — force it once the keyboard
-// animation/visualViewport resize (see Modal.tsx) has settled.
-function scrollFieldIntoView(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  const el = e.currentTarget;
-  window.setTimeout(() => {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 300);
 }
 
 function OrderField({

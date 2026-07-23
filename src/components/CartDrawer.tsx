@@ -16,6 +16,7 @@ import { InAppBrowserNotice } from './InAppBrowserNotice';
 import { useCart, type CartLine } from '../context/CartContext';
 import { isMetaInAppBrowser } from '../lib/inAppBrowser';
 import { buildCartOrderMessage, openWhatsAppChat } from '../lib/whatsappOrder';
+import { scrollFieldIntoView } from '../lib/scrollFieldIntoView';
 
 interface CartDrawerProps {
   open: boolean;
@@ -245,6 +246,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   required
                   value={cust.firstName}
                   onChange={(e) => setCust({ ...cust, firstName: e.target.value })}
+                  onFocus={scrollFieldIntoView}
                   placeholder="Sara"
                   className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all"
                 />
@@ -255,6 +257,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   required
                   value={cust.lastName}
                   onChange={(e) => setCust({ ...cust, lastName: e.target.value })}
+                  onFocus={scrollFieldIntoView}
                   placeholder="El Amrani"
                   className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all"
                 />
@@ -267,6 +270,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                 required
                 value={cust.phone}
                 onChange={(e) => setCust({ ...cust, phone: e.target.value })}
+                onFocus={scrollFieldIntoView}
                 placeholder="0612345678"
                 className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all tabular-nums"
               />
@@ -276,6 +280,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
               <textarea
                 value={cust.address}
                 onChange={(e) => setCust({ ...cust, address: e.target.value })}
+                onFocus={scrollFieldIntoView}
                 rows={2}
                 placeholder="Ville, quartier, point de repère..."
                 className="w-full px-4 py-3 bg-surface-tint border border-transparent rounded-2xl text-sm focus:bg-white focus:border-brand-300 focus:ring-brand transition-all resize-none"
