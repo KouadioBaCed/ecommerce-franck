@@ -64,7 +64,7 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
       {/* Top announcement bar */}
       <div className="hidden md:flex items-center justify-center gap-2 bg-ink text-white text-xs py-1.5 tracking-wide">
         <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-        Livraison directe vendeur via WhatsApp — Sans intermédiaire
+        Recevez vos commandes directement sur WhatsApp, sans intermédiaire
       </div>
 
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

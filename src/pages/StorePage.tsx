@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
-  MessageCircle,
   Store,
   Package,
   BadgeCheck,
@@ -9,7 +8,6 @@ import {
   Star,
   Search,
   Heart,
-  Sparkles,
   Check,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -138,10 +136,6 @@ export function StorePage({ slug, navigate }: StorePageProps) {
     );
   }
 
-  const waUrl = profile.whatsapp_number
-    ? `https://wa.me/${profile.whatsapp_number.replace(/\D/g, '')}`
-    : null;
-
   return (
     <div>
       {/* Cover */}
@@ -225,16 +219,6 @@ export function StorePage({ slug, navigate }: StorePageProps) {
 
             {/* Actions */}
             <div className="flex sm:flex-col items-stretch gap-2 sm:ml-auto">
-              {waUrl && (
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all shadow-[0_8px_20px_-8px_rgba(16,185,129,0.55)] hover:-translate-y-0.5"
-                >
-                  <MessageCircle className="w-4 h-4" /> Contacter
-                </a>
-              )}
               <button
                 onClick={() => setFollowing((f) => !f)}
                 className={`flex items-center justify-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition-all border ${
@@ -294,7 +278,7 @@ export function StorePage({ slug, navigate }: StorePageProps) {
         </div>
 
         {/* Products */}
-        <div className="py-8 pb-20">
+        <div id="produits" className="py-8 pb-20 scroll-mt-24">
           {filtered.length === 0 ? (
             <div className="bg-white rounded-3xl border border-dashed border-slate-200 py-16 text-center">
               <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-50 grid place-items-center mb-4">
@@ -318,28 +302,6 @@ export function StorePage({ slug, navigate }: StorePageProps) {
           )}
         </div>
 
-        {/* Promo CTA */}
-        {waUrl && (
-          <div className="rounded-3xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-12 shadow-[0_20px_40px_-20px_rgba(16,185,129,0.5)]">
-            <span className="w-12 h-12 grid place-items-center rounded-2xl bg-white/15 shrink-0">
-              <Sparkles className="w-6 h-6" />
-            </span>
-            <div className="flex-1">
-              <h4 className="font-display text-xl font-extrabold">Une question ? Parlez directement au vendeur.</h4>
-              <p className="text-white/80 text-sm mt-1">
-                Réponse rapide, conseils personnalisés et bons plans exclusifs.
-              </p>
-            </div>
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white text-emerald-700 text-sm font-bold px-5 py-3 rounded-full hover:bg-emerald-50 transition-colors"
-            >
-              Ouvrir WhatsApp
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );

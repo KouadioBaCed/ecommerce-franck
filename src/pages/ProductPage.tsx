@@ -27,6 +27,7 @@ import { useAuth } from '../context/AuthContext';
 import { Modal } from '../components/Modal';
 import { useMetaPixel } from '../hooks/useMetaPixel';
 import { trackAddToCart, trackPurchase } from '../lib/metaPixel';
+import { isMetaInAppBrowser } from '../lib/inAppBrowser';
 
 // FCFA → ISO 4217 currency code for Meta (West African CFA franc).
 const CURRENCY = 'XOF';
@@ -57,6 +58,9 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
   const [images, setImages] = useState<string[]>([]);
   const [activeImage, setActiveImage] = useState(0);
   const wished = product ? isWished(product.id) : false;
+  // Facebook/Instagram ad clicks land here inside their embedded in-app
+  // browser, which mishandles the WhatsApp handoff — see submitOrder().
+  const inAppBrowser = useMemo(() => isMetaInAppBrowser(), []);
 
   useEffect(() => {
     async function load() {
@@ -217,8 +221,20 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       num_items: totalQty,
     });
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // api.whatsapp.com/send is the direct click-to-chat endpoint — wa.me is
+    // just an alias that 302-redirects to it, and that extra hop is where
+    // Facebook's in-app browser tends to drop the `text` query param.
+    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(lines.join('\n'))}`;
+
+    if (inAppBrowser) {
+      // Facebook/Instagram's embedded WebView blocks or mishandles
+      // window.open() popups, which is what causes WhatsApp to open with its
+      // default share text instead of our pre-filled message. A top-level,
+      // same-tab navigation is what reliably triggers the app handoff there.
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
     setOrderOpen(false);
   }
 
@@ -647,6 +663,15 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
           </div>
 
           <form onSubmit={submitOrder} className="space-y-4">
+            {inAppBrowser && (
+              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-4 py-3 rounded-2xl">
+                <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>
+                  Tu es dans l'appli Facebook/Instagram : si WhatsApp ne s'ouvre pas avec ta commande pré-remplie,
+                  appuie sur <strong>⋯</strong> en haut à droite puis <strong>« Ouvrir dans le navigateur »</strong> avant d'envoyer.
+                </span>
+              </div>
+            )}
             {orderError && (
               <div className="flex items-start gap-2 bg-rose-50 border border-rose-200 text-rose-600 text-sm px-4 py-3 rounded-2xl animate-pop">
                 <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
