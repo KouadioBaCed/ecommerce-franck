@@ -26,7 +26,13 @@
       "Bash(curl *)",
       "Bash(python -c \"import struct;d=open\\('public/logo/download.png','rb'\\).read\\(\\); i=d.find\\(b'IHDR'\\); print\\('width',struct.unpack\\('>I',d[i+4:i+8]\\)[0],'height',struct.unpack\\('>I',d[i+8:i+12]\\)[0]\\)\")",
       "Bash(node -e \"const b=require\\('fs'\\).readFileSync\\('public/logo/download.png'\\);const i=b.indexOf\\('IHDR'\\);console.log\\('width',b.readUInt32BE\\(i+4\\),'height',b.readUInt32BE\\(i+8\\)\\)\")",
-      "PowerShell(npx eslint src/components/CartDrawer.tsx src/components/Navbar.tsx src/components/ProductCard.tsx src/context/CartContext.tsx src/lib/whatsappOrder.ts src/lib/inAppBrowser.ts src/components/InAppBrowserNotice.tsx src/pages/ProductPage.tsx src/App.tsx)"
+      "PowerShell(npx eslint src/components/CartDrawer.tsx src/components/Navbar.tsx src/components/ProductCard.tsx src/context/CartContext.tsx src/lib/whatsappOrder.ts src/lib/inAppBrowser.ts src/components/InAppBrowserNotice.tsx src/pages/ProductPage.tsx src/App.tsx)",
+      "Skill(run)",
+      "Bash(command -v msedge)",
+      "Read(//c/Program Files \\\\\\(x86\\\\\\)/Microsoft/Edge/Application/**)",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Bash(npm ls *)",
+      "Bash(pkill -f \"vite\")"
     ]
   }
 }

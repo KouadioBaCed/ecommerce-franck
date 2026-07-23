@@ -21,23 +21,22 @@ const SIZES: Record<NonNullable<ModalProps['size']>, string> = {
  * Escape or backdrop click.
  */
 export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
-  // Tracks the visualViewport (the area actually visible above the mobile
-  // keyboard) so the sheet resizes/repositions instead of letting the
-  // keyboard cover its inputs — `100vh`/`inset-0` don't shrink on their own.
-  const [viewport, setViewport] = useState<{ height: number; offsetTop: number } | null>(null);
-  // Some in-app browsers (Facebook/Instagram) report a buggy, undersized
-  // visualViewport.height from the moment the page loads — not just once the
-  // keyboard opens. Applying that reading unconditionally clipped the sheet
-  // down to ~2 fields immediately on open, well before any keyboard existed.
-  // Only trust the shrink once a field is actually focused.
+  // Whether a form field inside the modal currently has focus. Some in-app
+  // browsers (Facebook/Instagram in particular) never actually shrink or
+  // reposition a `position: fixed` element for the on-screen keyboard —
+  // the keyboard just overlays whatever pixels happen to be there, and no
+  // amount of viewport-size math can recover content trapped behind it.
+  //
+  // The one thing that reliably works everywhere, including those
+  // browsers, is the browser's own native behavior of scrolling the *page*
+  // to keep a focused input above the keyboard — but that native behavior
+  // only kicks in for elements in normal document flow, not for content
+  // stuck inside a fixed ancestor. So instead of fighting the keyboard, we
+  // release the modal from `position: fixed` to `absolute` (pinned to
+  // wherever it visually was) the moment a field is focused, letting the
+  // page scroll normally and the browser do what it already does well.
   const [fieldFocused, setFieldFocused] = useState(false);
-  // Height captured once when the modal opens (before any keyboard). We
-  // compare later readings against this fixed baseline rather than a live
-  // `window.innerHeight` — some Android WebViews (including Facebook's
-  // in-app browser) shrink `window.innerHeight` itself in lockstep with the
-  // keyboard, which would make a live comparison always ~1:1 and never
-  // detect that the keyboard opened at all.
-  const baselineHeight = useRef<number | null>(null);
+  const scrollYOnFocus = useRef(0);
 
   useEffect(() => {
     if (!open) return;
@@ -47,15 +46,14 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
     };
     document.addEventListener('keydown', onKey);
 
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
     const isFormField = (target: EventTarget | null) => {
       const tag = (target as HTMLElement | null)?.tagName;
       return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
     };
     const onFocusIn = (e: FocusEvent) => {
-      if (isFormField(e.target)) setFieldFocused(true);
+      if (!isFormField(e.target)) return;
+      scrollYOnFocus.current = window.scrollY;
+      setFieldFocused(true);
     };
     const onFocusOut = (e: FocusEvent) => {
       if (isFormField(e.target)) setFieldFocused(false);
@@ -63,53 +61,33 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
 
-    const vv = window.visualViewport;
-    const readHeight = () => vv?.height ?? window.innerHeight;
-    const readOffsetTop = () => vv?.offsetTop ?? 0;
-
-    baselineHeight.current = readHeight();
-    const onViewportChange = () => setViewport({ height: readHeight(), offsetTop: readOffsetTop() });
-    onViewportChange();
-
-    // Not every in-app WebView implements visualViewport reliably — fall
-    // back to window resize (Android WebViews typically shrink
-    // window.innerHeight directly when the keyboard opens).
-    if (vv) {
-      vv.addEventListener('resize', onViewportChange);
-      vv.addEventListener('scroll', onViewportChange);
-    } else {
-      window.addEventListener('resize', onViewportChange);
-    }
-
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('focusout', onFocusOut);
-      if (vv) {
-        vv.removeEventListener('resize', onViewportChange);
-        vv.removeEventListener('scroll', onViewportChange);
-      } else {
-        window.removeEventListener('resize', onViewportChange);
-      }
-      setViewport(null);
       setFieldFocused(false);
-      baselineHeight.current = null;
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  // Background scroll stays locked while idle, so the modal reads like a
+  // normal fixed overlay. It's released the instant a field is focused so
+  // the page (now holding the modal via `position: absolute`, see below)
+  // can scroll under the browser's control.
+  useEffect(() => {
+    if (!open || fieldFocused) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, fieldFocused]);
 
-  const keyboardOpen =
-    fieldFocused &&
-    viewport !== null &&
-    baselineHeight.current !== null &&
-    viewport.height < baselineHeight.current * 0.85;
+  if (!open) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4"
-      style={keyboardOpen ? { top: viewport.offsetTop, height: viewport.height } : undefined}
+      className={`${fieldFocused ? 'absolute' : 'fixed'} inset-x-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4`}
+      style={fieldFocused ? { top: scrollYOnFocus.current, minHeight: '100vh' } : { top: 0, bottom: 0 }}
       role="dialog"
       aria-modal="true"
     >
@@ -120,8 +98,9 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
       />
       {/* Panel */}
       <div
-        className={`relative w-full ${SIZES[size]} max-h-[85vh] overflow-y-auto scrollbar-thin bg-white rounded-t-3xl sm:rounded-3xl shadow-elevated animate-slide-up`}
-        style={keyboardOpen ? { maxHeight: viewport.height * 0.85 } : undefined}
+        className={`relative w-full ${SIZES[size]} scrollbar-thin bg-white rounded-t-3xl sm:rounded-3xl shadow-elevated animate-slide-up ${
+          fieldFocused ? '' : 'max-h-[85vh] overflow-y-auto'
+        }`}
       >
         {children}
       </div>
