@@ -7,13 +7,16 @@ import {
   LogIn,
   Store,
   Heart,
+  ShoppingCart,
   Sparkles,
   ChevronDown,
   User,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { openStore } from '../lib/openStore';
 import { Logo } from './Logo';
+import { CartDrawer } from './CartDrawer';
 
 interface NavbarProps {
   navigate: (path: string) => void;
@@ -29,9 +32,11 @@ const quickLinks = [
 
 export function Navbar({ navigate, currentRoute }: NavbarProps) {
   const { user, profile, signOut } = useAuth();
+  const { count: cartCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -85,6 +90,9 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
           <div className="hidden md:flex items-center gap-1">
             <IconButton label="Favoris" onClick={() => navigate('/')}>
               <Heart className="w-4.5 h-4.5" />
+            </IconButton>
+            <IconButton label="Panier" onClick={() => setCartOpen(true)} badge={cartCount}>
+              <ShoppingCart className="w-4.5 h-4.5" />
             </IconButton>
 
             {user ? (
@@ -170,6 +178,9 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
 
           {/* Mobile right actions */}
           <div className="md:hidden flex items-center gap-1">
+            <IconButton label="Panier" onClick={() => setCartOpen(true)} badge={cartCount}>
+              <ShoppingCart className="w-5 h-5" />
+            </IconButton>
             <button
               className="p-2.5 rounded-full text-ink-soft hover:bg-surface-tint transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -247,6 +258,8 @@ export function Navbar({ navigate, currentRoute }: NavbarProps) {
           </div>
         </div>
       )}
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   );
 }
@@ -255,10 +268,12 @@ function IconButton({
   children,
   onClick,
   label,
+  badge,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   label: string;
+  badge?: number;
 }) {
   return (
     <button
@@ -267,6 +282,11 @@ function IconButton({
       className="relative w-10 h-10 grid place-items-center rounded-full text-ink-soft hover:text-ink hover:bg-surface-tint transition-colors"
     >
       {children}
+      {!!badge && (
+        <span className="absolute top-1 right-1 min-w-[1.1rem] h-[1.1rem] px-1 grid place-items-center rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
     </button>
   );
 }

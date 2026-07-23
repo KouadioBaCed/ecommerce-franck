@@ -1,5 +1,6 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { CartProvider } from './context/CartContext';
 import { useRouter } from './hooks/useRouter';
 import { Navbar } from './components/Navbar';
 import { AdminSidebar } from './components/AdminSidebar';
@@ -177,7 +178,9 @@ function App() {
   return (
     <AuthProvider>
       <WishlistProvider>
-        <AppRoutes />
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
       </WishlistProvider>
     </AuthProvider>
   );

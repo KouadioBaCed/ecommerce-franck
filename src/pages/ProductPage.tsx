@@ -18,16 +18,20 @@ import {
   BadgeCheck,
   Copy,
   Check,
+  ShoppingCart,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Product, Profile } from '../lib/types';
 import { ProductCard } from '../components/ProductCard';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Modal } from '../components/Modal';
+import { InAppBrowserNotice } from '../components/InAppBrowserNotice';
 import { useMetaPixel } from '../hooks/useMetaPixel';
 import { trackAddToCart, trackPurchase } from '../lib/metaPixel';
 import { isMetaInAppBrowser } from '../lib/inAppBrowser';
+import { openWhatsAppChat } from '../lib/whatsappOrder';
 
 // FCFA → ISO 4217 currency code for Meta (West African CFA franc).
 const CURRENCY = 'XOF';
@@ -44,6 +48,7 @@ interface ProductPageProps {
 export function ProductPage({ id, navigate }: ProductPageProps) {
   const { user } = useAuth();
   const { isWished, toggle } = useWishlist();
+  const { addItem } = useCart();
   const [product, setProduct] = useState<ProductWithSeller | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +56,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
   // Per-size quantities for clothing/shoes, e.g. { '40': 2, '42': 1 }.
   const [sizeQty, setSizeQty] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
   const [cust, setCust] = useState({ firstName: '', lastName: '', phone: '', address: '' });
   const [orderError, setOrderError] = useState('');
@@ -221,21 +227,46 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
       num_items: totalQty,
     });
 
-    // api.whatsapp.com/send is the direct click-to-chat endpoint — wa.me is
-    // just an alias that 302-redirects to it, and that extra hop is where
-    // Facebook's in-app browser tends to drop the `text` query param.
-    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(lines.join('\n'))}`;
-
-    if (inAppBrowser) {
-      // Facebook/Instagram's embedded WebView blocks or mishandles
-      // window.open() popups, which is what causes WhatsApp to open with its
-      // default share text instead of our pre-filled message. A top-level,
-      // same-tab navigation is what reliably triggers the app handoff there.
-      window.location.href = url;
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    openWhatsAppChat(phone, lines.join('\n'));
     setOrderOpen(false);
+  }
+
+  function addToCart() {
+    if (!product) return;
+    const seller = product.profiles;
+    const base = {
+      productId: product.id,
+      name: product.name,
+      price: Number(product.price),
+      image: images[0] || product.image_url || null,
+      sellerId: product.seller_id,
+      storeName: seller?.store_name || 'Boutique',
+      storeSlug: seller?.store_slug ?? null,
+      whatsappNumber: seller?.whatsapp_number || null,
+    };
+
+    if (needsSize) {
+      selectedSizes.forEach((s) => {
+        addItem({ ...base, size: s }, sizeQty[s] ?? 0);
+      });
+      setSizeQty({});
+    } else {
+      addItem({ ...base, size: null }, qty);
+      setQty(1);
+    }
+
+    if (product) {
+      trackAddToCart({
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        value: Number(product.price) * totalQty,
+        currency: CURRENCY,
+      });
+    }
+
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 1500);
   }
 
   const rating = useMemo(() => {
@@ -536,18 +567,32 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
 
                 {/* CTA */}
                 {hasWhatsApp ? (
-                  <button
-                    onClick={openOrder}
-                    disabled={!product.in_stock || (needsSize && totalQty < 1)}
-                    className="flex items-center justify-center gap-2.5 w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-[0_10px_24px_-10px_rgba(16,185,129,0.55)] hover:shadow-[0_14px_30px_-10px_rgba(16,185,129,0.65)] hover:-translate-y-0.5"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    {!product.in_stock
-                      ? 'Indisponible'
-                      : needsSize && totalQty < 1
-                      ? `Choisis une ${sizeLabel.toLowerCase()}`
-                      : 'Commander sur WhatsApp'}
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2.5">
+                    <button
+                      onClick={addToCart}
+                      disabled={!product.in_stock || (needsSize && totalQty < 1)}
+                      className={`flex items-center justify-center gap-2 flex-1 font-semibold py-3.5 rounded-2xl text-sm transition-all duration-200 border disabled:opacity-50 disabled:cursor-not-allowed ${
+                        addedToCart
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-white border-slate-200 text-ink hover:border-brand-300 hover:bg-surface-tint'
+                      }`}
+                    >
+                      {addedToCart ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                      {addedToCart ? 'Ajouté au panier' : 'Ajouter au panier'}
+                    </button>
+                    <button
+                      onClick={openOrder}
+                      disabled={!product.in_stock || (needsSize && totalQty < 1)}
+                      className="flex items-center justify-center gap-2.5 flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-[0_10px_24px_-10px_rgba(16,185,129,0.55)] hover:shadow-[0_14px_30px_-10px_rgba(16,185,129,0.65)] hover:-translate-y-0.5"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {!product.in_stock
+                        ? 'Indisponible'
+                        : needsSize && totalQty < 1
+                        ? `Choisis une ${sizeLabel.toLowerCase()}`
+                        : 'Commander maintenant'}
+                    </button>
+                  </div>
                 ) : (
                   <div className="bg-surface-tint text-ink-muted text-sm text-center px-6 py-3.5 rounded-2xl">
                     Contact non disponible
@@ -663,15 +708,7 @@ export function ProductPage({ id, navigate }: ProductPageProps) {
           </div>
 
           <form onSubmit={submitOrder} className="space-y-4">
-            {inAppBrowser && (
-              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-4 py-3 rounded-2xl">
-                <MessageCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>
-                  Tu es dans l'appli Facebook/Instagram : si WhatsApp ne s'ouvre pas avec ta commande pré-remplie,
-                  appuie sur <strong>⋯</strong> en haut à droite puis <strong>« Ouvrir dans le navigateur »</strong> avant d'envoyer.
-                </span>
-              </div>
-            )}
+            {inAppBrowser && <InAppBrowserNotice />}
             {orderError && (
               <div className="flex items-start gap-2 bg-rose-50 border border-rose-200 text-rose-600 text-sm px-4 py-3 rounded-2xl animate-pop">
                 <XCircle className="w-4 h-4 mt-0.5 shrink-0" />

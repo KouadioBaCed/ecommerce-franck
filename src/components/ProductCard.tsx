@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
-import { Heart, Eye, Star, Package, ShoppingBag, BadgeCheck } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Heart, Eye, Star, Package, ShoppingBag, Check, BadgeCheck } from 'lucide-react';
 import type { Product, Profile } from '../lib/types';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 interface ProductCardProps {
@@ -22,8 +23,13 @@ function hashRating(seed: string) {
 export function ProductCard({ product, seller, navigate, index = 0 }: ProductCardProps) {
   const { user } = useAuth();
   const { isWished, toggle } = useWishlist();
+  const { addItem } = useCart();
   const wished = isWished(product.id);
   const { rating, reviews } = useMemo(() => hashRating(product.id), [product.id]);
+  const [added, setAdded] = useState(false);
+  // Sized products (clothing/shoes) need a size picked on the product page —
+  // only sizeless products can be quick-added straight from the grid.
+  const canQuickAdd = !!seller && (!product.sizes || product.sizes.length === 0);
 
   // Promo placeholder derived from id — purely visual hint, no logic change.
   const isPromo = useMemo(() => (product.id.charCodeAt(0) % 4) === 0, [product.id]);
@@ -46,6 +52,30 @@ export function ProductCard({ product, seller, navigate, index = 0 }: ProductCar
       return;
     }
     toggle(product.id);
+  }
+
+  function quickAdd(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!canQuickAdd || !seller) {
+      open(e);
+      return;
+    }
+    addItem(
+      {
+        productId: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image: product.image_url || null,
+        size: null,
+        sellerId: seller.id,
+        storeName: seller.store_name || 'Boutique',
+        storeSlug: seller.store_slug,
+        whatsappNumber: seller.whatsapp_number || null,
+      },
+      1
+    );
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1200);
   }
 
   function openStore(e: React.MouseEvent) {
@@ -173,9 +203,17 @@ export function ProductCard({ product, seller, navigate, index = 0 }: ProductCar
               </span>
             )}
           </div>
-          <span className="w-9 h-9 rounded-full bg-brand-50 text-brand-600 grid place-items-center group-hover:bg-ink group-hover:text-white transition-all duration-300">
-            <ShoppingBag className="w-4 h-4" strokeWidth={2.4} />
-          </span>
+          <button
+            onClick={quickAdd}
+            aria-label={canQuickAdd ? 'Ajouter au panier' : 'Voir le produit'}
+            className={`w-9 h-9 rounded-full grid place-items-center transition-all duration-300 ${
+              added
+                ? 'bg-emerald-500 text-white'
+                : 'bg-brand-50 text-brand-600 group-hover:bg-ink group-hover:text-white'
+            }`}
+          >
+            {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" strokeWidth={2.4} />}
+          </button>
         </div>
       </div>
     </article>
