@@ -120,8 +120,8 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
       />
       {/* Panel */}
       <div
-        className={`relative w-full ${SIZES[size]} max-h-[92vh] overflow-y-auto scrollbar-thin bg-white rounded-t-3xl sm:rounded-3xl shadow-elevated animate-slide-up`}
-        style={keyboardOpen ? { maxHeight: viewport.height * 0.92 } : undefined}
+        className={`relative w-full ${SIZES[size]} max-h-[85vh] overflow-y-auto scrollbar-thin bg-white rounded-t-3xl sm:rounded-3xl shadow-elevated animate-slide-up`}
+        style={keyboardOpen ? { maxHeight: viewport.height * 0.85 } : undefined}
       >
         {children}
       </div>
