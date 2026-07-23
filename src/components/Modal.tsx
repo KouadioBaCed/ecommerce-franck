@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useRef, useState, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -31,6 +31,13 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
   // down to ~2 fields immediately on open, well before any keyboard existed.
   // Only trust the shrink once a field is actually focused.
   const [fieldFocused, setFieldFocused] = useState(false);
+  // Height captured once when the modal opens (before any keyboard). We
+  // compare later readings against this fixed baseline rather than a live
+  // `window.innerHeight` — some Android WebViews (including Facebook's
+  // in-app browser) shrink `window.innerHeight` itself in lockstep with the
+  // keyboard, which would make a live comparison always ~1:1 and never
+  // detect that the keyboard opened at all.
+  const baselineHeight = useRef<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -57,13 +64,21 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
     document.addEventListener('focusout', onFocusOut);
 
     const vv = window.visualViewport;
-    const onViewportChange = () => {
-      if (vv) setViewport({ height: vv.height, offsetTop: vv.offsetTop });
-    };
+    const readHeight = () => vv?.height ?? window.innerHeight;
+    const readOffsetTop = () => vv?.offsetTop ?? 0;
+
+    baselineHeight.current = readHeight();
+    const onViewportChange = () => setViewport({ height: readHeight(), offsetTop: readOffsetTop() });
+    onViewportChange();
+
+    // Not every in-app WebView implements visualViewport reliably — fall
+    // back to window resize (Android WebViews typically shrink
+    // window.innerHeight directly when the keyboard opens).
     if (vv) {
-      onViewportChange();
       vv.addEventListener('resize', onViewportChange);
       vv.addEventListener('scroll', onViewportChange);
+    } else {
+      window.addEventListener('resize', onViewportChange);
     }
 
     return () => {
@@ -74,16 +89,22 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
       if (vv) {
         vv.removeEventListener('resize', onViewportChange);
         vv.removeEventListener('scroll', onViewportChange);
+      } else {
+        window.removeEventListener('resize', onViewportChange);
       }
       setViewport(null);
       setFieldFocused(false);
+      baselineHeight.current = null;
     };
   }, [open, onClose]);
 
   if (!open) return null;
 
   const keyboardOpen =
-    fieldFocused && viewport !== null && viewport.height < window.innerHeight * 0.85;
+    fieldFocused &&
+    viewport !== null &&
+    baselineHeight.current !== null &&
+    viewport.height < baselineHeight.current * 0.85;
 
   return createPortal(
     <div
